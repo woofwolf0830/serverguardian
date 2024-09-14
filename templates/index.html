@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>伺服器乖乖</title>
+    <style>
+        div {
+            margin: 5px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .time-container {
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #image-placeholder {
+            height: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: #666;
+            border-radius: 5px;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+
+    <div>現在時間</div>
+    <div class="time-container" id="time-now"></div>
+    <div>乖乖有效期限</div>
+    <div class="time-container" id="time-expire"></div>
+    <button onclick="updateExpire();" class="btn btn-primary" role="button">點我延長乖乖效期</button>
+    <div id="image-placeholder">
+        <img id="guaiguai" src="/static/img/guaiguai_text.png" height="100%">
+        <img id="guaiguai-red" src="/static/img/red_guaiguai.png" height="100%" hidden="true">
+    </div>
+
+    <script>
+        function updateExpire() {
+            fetch('/api/newguaiguai', {method: "GET"})
+            .then((r)=> {
+                return r.text();
+            })
+            .then(console.log)
+            .then(getGuaiguaiExpireDate)
+            .catch(console.error);
+        };
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleDateString('zh-TW') + ' ' + now.toLocaleTimeString('zh-TW');
+            document.getElementById('time-now').textContent = timeString;
+        };
+        function getGuaiguaiExpireDate() {
+            fetch('/api/guaiguaidate', {method: "GET"})
+            .then((r)=> {
+                return r.json();
+            })
+            .then((r) => {
+                console.log(r);
+                if (r['result'] === 'OK') {
+                    document.getElementById('guaiguai').hidden = false;
+                    document.getElementById('guaiguai-red').hidden = true;
+                } else {
+                    document.getElementById('guaiguai').hidden = true;
+                    document.getElementById('guaiguai-red').hidden = false;
+                }
+                document.getElementById('time-expire').textContent = r['time'];
+            })
+            .catch(console.error);
+        };
+        setInterval(updateTime, 1000);
+        updateTime();
+        getGuaiguaiExpireDate();
+    </script>
+    <script src="/static/js/bootstrap.min.js"></script>
+</body>
+</html>
